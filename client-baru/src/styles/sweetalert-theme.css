@@ -1,0 +1,43 @@
+.aba-swal-popup {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  font-family: "El Messiri", "Segoe UI", Arial, sans-serif;
+}
+
+.aba-swal-title {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.aba-swal-text {
+  color: #475569;
+  font-size: 14px;
+}
+
+.aba-swal-confirm,
+.aba-swal-cancel {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aba-swal-confirm {
+  background: #0f5f3a;
+  color: #ffffff;
+}
+
+.aba-swal-confirm:hover {
+  background: #0b4a2d;
+}
+
+.aba-swal-cancel {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.aba-swal-cancel:hover {
+  background: #cbd5e1;
+}

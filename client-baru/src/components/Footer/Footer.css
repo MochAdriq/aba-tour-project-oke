@@ -1,0 +1,99 @@
+footer {
+  margin-top: 80px; /* Jarak dari konten atas */
+  background: linear-gradient(
+    180deg,
+    var(--green) 0%,
+    var(--green-2) 55%,
+    var(--green-3) 100%
+  );
+  color: rgba(255, 255, 255, 0.88);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 40px;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr; /* Kolom pertama lebih lebar buat Logo & Deskripsi */
+  gap: 30px;
+  padding-bottom: 40px;
+}
+
+/* --- LOGO DI FOOTER --- */
+.footLogo {
+  width: 220px; /* Ukuran logo di footer */
+  height: auto;
+  display: block;
+  margin-bottom: 18px;
+  opacity: 0.9;
+}
+
+.footDesc {
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 360px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* --- LINKS --- */
+.footTitle {
+  font-weight: 950;
+  color: #fff;
+  margin: 0 0 16px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.footLinks {
+  display: grid;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.footLinks a {
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.footLinks a:hover {
+  color: var(--gold-2);
+  transform: translateX(4px); /* Efek geser dikit pas di hover */
+}
+
+/* --- BOTTOM BAR --- */
+.footBottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 24px 0 32px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .footerGrid {
+    grid-template-columns: 1fr; /* Stack jadi 1 kolom di HP */
+    gap: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  footer {
+    margin-top: 50px;
+    padding-top: 28px;
+  }
+
+  .footLogo {
+    width: 180px;
+  }
+
+  .footBottom {
+    padding: 16px 0 22px;
+    font-size: 11px;
+  }
+}

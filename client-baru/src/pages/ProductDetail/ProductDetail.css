@@ -1,0 +1,692 @@
+/* --- LAYOUT UTAMA --- */
+.detail-page {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* Hero Image Header */
+.detail-hero {
+  height: clamp(280px, 60vh, 720px); /* Stabil di desktop/mobile */
+  width: 100%;
+  position: relative;
+  background-color: #000;
+}
+
+.detail-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Jaga gambar agar tidak terpotong berlebihan */
+  object-position: center;
+  opacity: 0.9;
+}
+
+.hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.65);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 12;
+}
+
+.hero-nav-left {
+  left: 16px;
+}
+
+.hero-nav-right {
+  right: 16px;
+}
+
+.hero-dots {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 12;
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.hero-dot.active {
+  background: #ffffff;
+}
+
+.detail-hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  padding: 40px 0;
+  color: #fff;
+}
+
+.detail-container-inner {
+  max-width: 1150px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.category-badge {
+  background: #c9a227;
+  color: #000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.hero-title {
+  font-size: 36px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  font-weight: 800;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Container Content Grid */
+.detail-container {
+  max-width: 1150px;
+  margin: -25px auto 0; /* Card naik ke atas sedikit menutupi gambar */
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2 Bagian Kiri, 1 Bagian Kanan */
+  gap: 30px;
+}
+
+/* --- KOLOM KIRI (KONTEN) --- */
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* --- STICKY TABS PREMIUM (GLASS EFFECT) --- */
+.sticky-tabs {
+  position: sticky;
+  top: 120px; /* Jarak float dari atas layar */
+  z-index: 40; /* Pastikan di atas konten lain */
+
+  /* Glassmorphism Effect */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  /* Border & Shadow */
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.06),
+    0 4px 10px -5px rgba(0, 0, 0, 0.04);
+
+  padding: 8px;
+  border-radius: 99px; /* Bentuk Kapsul */
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto; /* Lebar menyesuaikan isi */
+  max-width: 100%;
+  overflow-x: auto; /* Aman di HP kalau kepanjangan */
+  margin-bottom: 10px;
+}
+
+/* Tombol Tab */
+.tab-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 20px;
+  border-radius: 99px; /* Tombol juga kapsul */
+
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+}
+
+.tab-link:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.tab-link:hover svg {
+  color: #c9a227;
+}
+
+/* Hide Scrollbar di HP */
+.sticky-tabs::-webkit-scrollbar {
+  display: none;
+}
+.sticky-tabs {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Cards (White Box Style) */
+.detail-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 15px;
+}
+
+.icon-gold {
+  color: #c9a227;
+}
+
+.text-desc {
+  line-height: 1.8;
+  color: #475569;
+}
+
+.text-desc-html p,
+.text-desc-html ul,
+.text-desc-html ol {
+  margin: 0 0 12px;
+}
+
+.text-desc-html h1,
+.text-desc-html h2,
+.text-desc-html h3 {
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.text-desc-html img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+/* Include / Exclude List */
+.check-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.check-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.mt-4 {
+  margin-top: 30px;
+}
+
+/* Itinerary Accordion */
+.accordion-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accordion-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  background: #f8fafc;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #0f172a;
+  transition: 0.2s;
+}
+
+.accordion-header:hover {
+  background: #f1f5f9;
+}
+
+.accordion-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.day-badge {
+  background: #c9a227;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.accordion-body {
+  padding: 20px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Hotel Grid */
+.hotel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.hotel-box {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.hotel-box small {
+  color: #64748b;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.hotel-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #0f172a;
+  margin-bottom: 5px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.hotel-slider-wrap {
+  margin-top: 20px;
+}
+
+.hotel-slider-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hotel-slider-head h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.hotel-slider-head span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.hotel-slider {
+  position: relative;
+}
+
+.hotel-slider-image {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.hotel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.65);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.hotel-nav-left {
+  left: 12px;
+}
+
+.hotel-nav-right {
+  right: 12px;
+}
+
+.hotel-slider-dots {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.hotel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  background: #cbd5e1;
+  cursor: pointer;
+}
+
+.hotel-dot.active {
+  background: #0f5f3a;
+}
+
+/* --- KOLOM KANAN (SIDEBAR BOOKING PREMIUM) --- */
+.content-right {
+  position: relative;
+}
+
+.booking-card {
+  position: sticky;
+  top: 100px;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.1); /* Shadow lebih lembut & dalam */
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+/* Header Harga */
+.price-tag {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.price-tag small {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.price-tag .amount {
+  font-size: 32px;
+  font-weight: 950;
+  color: #059669;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* Room Selector Row */
+.room-selector-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 4px 0;
+}
+
+.room-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.room-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.room-price {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Quantity Control (Tombol + -) */
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.qty-btn:hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+.qty-btn:active {
+  transform: scale(0.95);
+}
+
+.qty-value {
+  font-size: 14px;
+  font-weight: 800;
+  width: 20px;
+  text-align: center;
+  color: #0f172a;
+}
+
+/* Summary Box (Kotak Abu) */
+.info-summary {
+  background: #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.summary-row strong {
+  color: #0f172a;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 14px;
+}
+
+/* Status & Kuota */
+.sidebar-status {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: #fffbeb;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #fef3c7;
+}
+
+/* Tombol Booking */
+.book-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: #0f172a;
+  color: #fff;
+  padding: 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3);
+}
+
+.book-btn:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px -5px rgba(15, 23, 42, 0.4);
+}
+
+.book-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.note-text {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .detail-container {
+    grid-template-columns: 1fr; /* Jadi 1 kolom di HP */
+    margin-top: 0;
+  }
+  .detail-hero {
+    height: clamp(220px, 40vh, 420px);
+  }
+  .booking-card {
+    position: static; /* Gak sticky di HP, pindah ke bawah */
+    margin-bottom: 20px;
+  }
+  .sticky-tabs {
+    top: 60px;
+  }
+  .hotel-grid {
+    grid-template-columns: 1fr;
+  }
+  .hotel-slider-image {
+    height: 220px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .hero-meta {
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+
+  .detail-card {
+    padding: 18px;
+  }
+
+  .section-title {
+    font-size: 17px;
+  }
+
+  .check-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hotel-slider-image {
+    height: 180px;
+  }
+
+  .hero-nav {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -1,0 +1,144 @@
+/* Container Search Bar - VERSI LEBAR */
+.searchBar {
+  /* Posisikan di bawah hero dengan jarak */
+  margin-top: 40px;
+  margin-bottom: 20px;
+
+  /* Bikin lebar tapi tetap ada batas max biar rapi */
+  width: 100%;
+  max-width: 100%; /* Full container width */
+
+  display: grid;
+  /* Grid: 3 Kolom Input rata, 1 Tombol kecil di ujung */
+  grid-template-columns: 1fr 1.2fr 1fr 80px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px; /* Radius lebih besar biar modern */
+  box-shadow: 0 20px 40px rgba(15, 95, 58, 0.06); /* Shadow halus kehijauan */
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+
+/* Kotak Input Individual */
+.field {
+  display: flex;
+  gap: 14px; /* Jarak icon ke text lebih lega */
+  align-items: center;
+  padding: 16px 24px; /* Padding lebih besar */
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
+  height: 80px; /* Tinggi bar diperbesar biar gagah */
+  transition: 0.2s;
+}
+
+.field:hover {
+  background: rgba(246, 247, 251, 0.5); /* Efek hover halus */
+}
+
+.field:last-of-type {
+  border-right: 0;
+}
+
+/* Icon Styles */
+.fieldIcon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: var(--gold); /* Ganti warna icon jadi emas biar mewah */
+  background: rgba(201, 162, 39, 0.1); /* Background bulat tipis di icon */
+  padding: 8px;
+  box-sizing: content-box; /* Agar padding tidak memakan width */
+  border-radius: 50%;
+}
+
+.fieldContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-weight: 800;
+  color: var(--black);
+  font-size: 16px; /* Font input lebih besar */
+  cursor: pointer;
+}
+
+/* Tombol Cari */
+.searchBtn {
+  border: 0;
+  background: var(--green); /* Ganti jadi Hijau agar kontras */
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: 0.2s;
+  height: 100%;
+  width: 100%;
+}
+
+.searchBtn:hover {
+  background: var(--green-2);
+}
+
+.searchBtn svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
+
+/* RESPONSIVE TABLET & HP */
+@media (max-width: 980px) {
+  .searchBar {
+    grid-template-columns: 1fr; /* Stack ke bawah */
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .field {
+    border-right: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    height: auto;
+    padding: 16px;
+  }
+
+  .searchBtn {
+    height: 60px; /* Tinggi tombol di HP */
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .searchBar {
+    margin-top: 24px;
+  }
+
+  .field {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .field input,
+  .field select {
+    font-size: 14px;
+  }
+}

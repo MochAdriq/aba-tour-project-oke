@@ -1,0 +1,329 @@
+/* client/src/layouts/Dashboard.css */
+
+/* --- LAYOUT UTAMA --- */
+.dash-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Abu sangat muda, bersih */
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.dash-menu-btn,
+.dash-backdrop {
+  display: none;
+}
+
+/* --- SIDEBAR --- */
+.dash-sidebar {
+  width: 280px;
+  background: #0f172a; /* Warna gelap premium */
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  position: fixed; /* Tetap diam saat discroll */
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  transition: all 0.3s ease;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
+}
+
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 40px;
+}
+
+.dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.dash-link {
+  display: flex; /* KUNCI SUPAYA ICON SEJAJAR */
+  align-items: center; /* Vertikal Center */
+  gap: 12px; /* Jarak Icon ke Teks */
+  padding: 12px 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: 0.2s;
+  margin-bottom: 5px;
+}
+
+.dash-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  transform: translateX(4px);
+}
+
+.dash-link.active {
+  background: linear-gradient(90deg, #c9a227 0%, #b8921f 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(201, 162, 39, 0.2);
+}
+
+.dash-logout {
+  margin-top: auto; /* Dorong ke paling bawah */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: #ef4444; /* Merah */
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s;
+  width: 100%;
+}
+
+.dash-logout:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* --- MAIN CONTENT AREA --- */
+.dash-main {
+  margin-left: 280px; /* Memberi ruang untuk sidebar */
+  flex: 1;
+  padding: 40px;
+  width: calc(100% - 280px);
+}
+
+/* --- HEADER CARD --- */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.dash-title h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.dash-title p {
+  color: #64748b;
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+/* --- TABLE CARD STYLE --- */
+.table-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-table thead {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modern-table th {
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modern-table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modern-table tr:hover td {
+  background: #fcfcfc;
+}
+
+/* Badges */
+.badge {
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-umroh {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+.badge-haji {
+  background: #dcfce7;
+  color: #15803d;
+}
+.booking-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.booking-confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+.booking-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.booking-paid {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.booking-unpaid {
+  background: #e2e8f0;
+  color: #334155;
+}
+.booking-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.booking-refunded {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* Image Thumb */
+.table-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
+/* Action Button */
+.btn-delete {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-delete:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-add {
+  background: #0f172a;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+.btn-add:hover {
+  transform: translateY(-2px);
+  background: #1e293b;
+}
+
+@media (max-width: 1024px) {
+  .dash-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .dash-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .dash-main {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px 14px;
+  }
+
+  .dash-menu-btn {
+    display: inline-flex;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 70;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #dbe0e7;
+    background: #fff;
+    color: #0f172a;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  }
+
+  .dash-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(15, 23, 42, 0.45);
+    border: none;
+  }
+
+  .dash-header {
+    margin-top: 56px;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .dash-title h2 {
+    font-size: 22px;
+  }
+
+  .modern-table th,
+  .modern-table td {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .table-card {
+    overflow-x: auto;
+  }
+
+  .modern-table {
+    min-width: 680px;
+  }
+}

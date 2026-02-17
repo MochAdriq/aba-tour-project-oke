@@ -1,0 +1,146 @@
+/* client/src/index.css */
+
+@font-face {
+  font-family: "El Messiri";
+  src: url("./assets/fonts/El_Messiri/static/ElMessiri-Regular.ttf")
+    format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* --- VARIABEL WARNA & SETTING --- */
+:root {
+  --black: #0b0c10;
+  --black-2: #111318;
+  --ink: #0f172a;
+  --gold: #c9a227;
+  --gold-2: #e0c15a;
+  --green: #0f5f3a;
+  --green-2: #0b4a2d;
+  --green-3: #0a3c25;
+  --white: #ffffff;
+  --muted: #6b7280;
+
+  --line: rgba(15, 23, 42, 0.1);
+  --shadow: 0 18px 60px rgba(2, 6, 23, 0.12);
+
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+
+  --container: 1120px;
+  --bg: #f6f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "El Messiri", "Segoe UI", Arial, sans-serif;
+  color: #0b1220;
+  background: var(--bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* --- STICKY FOOTER SETUP (AMAN UNTUK SEMUA HALAMAN) --- */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Aplikasi minimal setinggi layar */
+}
+
+main {
+  flex: 1; /* Main mengisi ruang kosong agar footer terdorong ke bawah */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* JANGAN pakai align-items: center di sini, nanti Home jadi gepeng */
+}
+
+/* --- UTILITY CLASS UMUM --- */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+img,
+video {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  width: min(var(--container), calc(100% - 40px));
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(var(--container), calc(100% - 24px));
+  }
+}
+
+.section {
+  padding: 22px 0;
+}
+
+/* --- BUTTONS --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--black) 0%, var(--black-2) 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn--gold {
+  background: linear-gradient(135deg, var(--gold) 0%, #b8921f 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(201, 162, 39, 0.25);
+}
+.btn--gold:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--black);
+  border: 1px solid rgba(15, 23, 42, 0.15);
+}
+.btn--ghost:hover {
+  border-color: var(--black);
+  background: #fff;
+}

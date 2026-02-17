@@ -1,0 +1,118 @@
+/* Container Header */
+.faqHead {
+  margin-top: 60px; /* Jarak dari section sebelumnya */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.faqHead h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.2px;
+  font-weight: 950;
+}
+
+/* Container List */
+.faqList {
+  border-radius: var(--radius-xl);
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Item FAQ Individual */
+details {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 0 24px;
+  transition: background 0.2s;
+}
+
+details:last-child {
+  border-bottom: 0;
+}
+
+details[open] {
+  background: rgba(246, 247, 251, 0.5); /* Highlight halus saat dibuka */
+}
+
+/* Judul Pertanyaan (Clickable) */
+summary {
+  cursor: pointer;
+  padding: 24px 0;
+  font-weight: 950;
+  color: rgba(15, 23, 42, 0.85);
+  font-size: 16px;
+  list-style: none; /* Hilangkan panah default browser */
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Menghilangkan marker default di Chrome/Safari */
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Tombol Panah Kustom */
+.chev {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 95, 58, 0.09);
+  border: 1px solid rgba(15, 95, 58, 0.14);
+  flex: 0 0 auto; /* Supaya tidak gepeng */
+  transition: transform 0.3s ease; /* Animasi putar */
+}
+
+.chev svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--green);
+}
+
+/* Rotasi Panah Saat Dibuka */
+details[open] .chev {
+  transform: rotate(180deg);
+  background: var(--green);
+}
+details[open] .chev svg {
+  fill: #fff;
+}
+
+/* Isi Jawaban */
+details p {
+  margin: 0 0 24px;
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 860px;
+  padding-right: 40px;
+}
+
+@media (max-width: 640px) {
+  .faqHead h2 {
+    font-size: 24px;
+  }
+
+  details {
+    padding: 0 16px;
+  }
+
+  summary {
+    padding: 16px 0;
+    font-size: 14px;
+  }
+
+  details p {
+    font-size: 13px;
+    padding-right: 0;
+    margin-bottom: 18px;
+  }
+}

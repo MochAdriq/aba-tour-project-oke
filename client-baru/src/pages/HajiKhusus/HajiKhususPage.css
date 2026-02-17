@@ -1,0 +1,51 @@
+.haji-page {
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
+.haji-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.haji-card {
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  padding: 30px;
+}
+
+.haji-card small {
+  display: inline-block;
+  background: rgba(201, 162, 39, 0.18);
+  color: #7a5a00;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.haji-card h1 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 32px;
+}
+
+.haji-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .haji-card {
+    padding: 20px;
+  }
+
+  .haji-card h1 {
+    font-size: 24px;
+  }
+}
