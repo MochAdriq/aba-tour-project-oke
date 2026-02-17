@@ -10,6 +10,8 @@ const authRoutes = require("./routes/authRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const hajiKhususRoutes = require("./routes/hajiKhususRoutes");
+const newsRoutes = require("./routes/newsRoutes");
 
 dotenv.config();
 const app = express();
@@ -42,6 +44,8 @@ app.use("/api/promos", promoRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/haji-khusus", hajiKhususRoutes);
+app.use("/api/news", newsRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {

@@ -13,6 +13,22 @@ const db = mysql.createConnection({
   database: "db_aba_tour",
 });
 
+const productSchemaPatchQueries = [
+  "ALTER TABLE products ADD COLUMN hotel_images TEXT NULL",
+  "ALTER TABLE products ADD COLUMN image_urls TEXT NULL",
+  "ALTER TABLE products ADD COLUMN hotel_makkah_images TEXT NULL",
+  "ALTER TABLE products ADD COLUMN hotel_madinah_images TEXT NULL",
+  "ALTER TABLE products MODIFY COLUMN category ENUM('umroh','haji','umroh_plus','tour') NOT NULL DEFAULT 'umroh'",
+];
+
+productSchemaPatchQueries.forEach((query) => {
+  db.query(query, (err) => {
+    if (err && err.code !== "ER_DUP_FIELDNAME") {
+      console.error("Product schema patch error:", err.message);
+    }
+  });
+});
+
 // Konfigurasi Upload Gambar
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -24,7 +40,24 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+      return cb(new Error("Hanya file gambar yang diizinkan."));
+    }
+    return cb(null, true);
+  },
+});
+
+const uploadProductMedia = upload.fields([
+  { name: "image", maxCount: 1 }, // legacy field
+  { name: "images", maxCount: 12 },
+  { name: "hotel_images", maxCount: 12 }, // legacy field
+  { name: "hotel_makkah_images", maxCount: 12 },
+  { name: "hotel_madinah_images", maxCount: 12 },
+]);
 
 // --- 1. GET ALL PRODUCTS ---
 router.get("/", (req, res) => {
@@ -58,8 +91,26 @@ router.get("/slug/:slug", (req, res) => {
   });
 });
 
+router.post(
+  "/editor-image",
+  requireAuth,
+  requireAdmin,
+  upload.single("image"),
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "File gambar wajib diupload." });
+    }
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    return res.json({
+      message: "Upload gambar editor berhasil.",
+      filename: req.file.filename,
+      imageUrl,
+    });
+  },
+);
+
 // --- 4. POST (TAMBAH PRODUK BARU - UPDATED) ---
-router.post("/", requireAuth, requireAdmin, upload.single("image"), (req, res) => {
+router.post("/", requireAuth, requireAdmin, uploadProductMedia, (req, res) => {
   try {
     const {
       title,
@@ -82,7 +133,29 @@ router.post("/", requireAuth, requireAdmin, upload.single("image"), (req, res) =
       itinerary,
     } = req.body;
 
-    const image_url = req.file ? req.file.filename : null;
+    const mainImageFiles = [
+      ...(req.files?.images || []),
+      ...(req.files?.image || []),
+    ];
+    const mainImages = mainImageFiles.map((file) => file.filename);
+    const image_url = mainImages[0] || null;
+    const imageUrlsJson = JSON.stringify(mainImages);
+
+    const makkahImageFiles = req.files?.hotel_makkah_images || [];
+    const madinahImageFiles = req.files?.hotel_madinah_images || [];
+    const legacyHotelImageFiles = req.files?.hotel_images || [];
+
+    const makkahImages = makkahImageFiles.map((file) => file.filename);
+    const madinahImages = madinahImageFiles.map((file) => file.filename);
+    const combinedHotelImages = [
+      ...makkahImages,
+      ...madinahImages,
+      ...legacyHotelImageFiles.map((file) => file.filename),
+    ];
+
+    const hotelImagesJson = JSON.stringify(combinedHotelImages);
+    const hotelMakkahImagesJson = JSON.stringify(makkahImages);
+    const hotelMadinahImagesJson = JSON.stringify(madinahImages);
 
     // Buat Slug
     const slug = title
@@ -98,8 +171,8 @@ router.post("/", requireAuth, requireAdmin, upload.single("image"), (req, res) =
     const cleanClosing = closing_date || null;
 
     const sql = `INSERT INTO products 
-    (title, slug, summary, category, price, price_quad, price_triple, price_double, duration, departure_date, closing_date, airline, quota, product_status, hotel_makkah, hotel_madinah, description, included, excluded, itinerary, image_url) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    (title, slug, summary, category, price, price_quad, price_triple, price_double, duration, departure_date, closing_date, airline, quota, product_status, hotel_makkah, hotel_madinah, hotel_images, hotel_makkah_images, hotel_madinah_images, description, included, excluded, itinerary, image_url, image_urls) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const values = [
       title,
@@ -118,11 +191,15 @@ router.post("/", requireAuth, requireAdmin, upload.single("image"), (req, res) =
       product_status,
       hotel_makkah,
       hotel_madinah,
+      hotelImagesJson,
+      hotelMakkahImagesJson,
+      hotelMadinahImagesJson,
       description,
       included,
       excluded,
       itinerary,
       image_url,
+      imageUrlsJson,
     ];
 
     db.query(sql, values, (err, result) => {
@@ -143,10 +220,10 @@ router.put(
   "/:id",
   requireAuth,
   requireAdmin,
-  upload.single("image"),
+  uploadProductMedia,
   (req, res) => {
   const { id } = req.params;
-  const {
+    const {
     title,
     summary,
     category,
@@ -164,7 +241,11 @@ router.put(
     description,
     included,
     excluded,
-    itinerary,
+      itinerary,
+      hotel_images_existing,
+      image_urls_existing,
+      hotel_makkah_images_existing,
+      hotel_madinah_images_existing,
   } = req.body;
 
   const slug = title
@@ -177,19 +258,92 @@ router.put(
     departure_date === "" || departure_date === "null" ? null : departure_date;
   const cleanClosing =
     closing_date === "" || closing_date === "null" ? null : closing_date;
+  const mainImageFiles = [
+    ...(req.files?.images || []),
+    ...(req.files?.image || []),
+  ];
+  const newHotelImageFiles = req.files?.hotel_images || [];
+  const newHotelMakkahImageFiles = req.files?.hotel_makkah_images || [];
+  const newHotelMadinahImageFiles = req.files?.hotel_madinah_images || [];
+
+  const existingMainImages = (() => {
+    if (!image_urls_existing) return [];
+    try {
+      const parsed = JSON.parse(image_urls_existing);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const existingHotelImages = (() => {
+    if (!hotel_images_existing) return [];
+    try {
+      const parsed = JSON.parse(hotel_images_existing);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+  const existingHotelMakkahImages = (() => {
+    if (!hotel_makkah_images_existing) return [];
+    try {
+      const parsed = JSON.parse(hotel_makkah_images_existing);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+  const existingHotelMadinahImages = (() => {
+    if (!hotel_madinah_images_existing) return [];
+    try {
+      const parsed = JSON.parse(hotel_madinah_images_existing);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const newMainImages = mainImageFiles.map((file) => file.filename);
+  const mergedMainImages = [...new Set([...existingMainImages, ...newMainImages])];
+
+  const newHotelImages = newHotelImageFiles.map((file) => file.filename);
+  const newHotelMakkahImages = newHotelMakkahImageFiles.map((file) => file.filename);
+  const newHotelMadinahImages = newHotelMadinahImageFiles.map((file) => file.filename);
+
+  const mergedHotelMakkahImages = [
+    ...new Set([...existingHotelMakkahImages, ...newHotelMakkahImages]),
+  ];
+  const mergedHotelMadinahImages = [
+    ...new Set([...existingHotelMadinahImages, ...newHotelMadinahImages]),
+  ];
+  const mergedHotelImages = [
+    ...new Set([
+      ...existingHotelImages,
+      ...newHotelImages,
+      ...mergedHotelMakkahImages,
+      ...mergedHotelMadinahImages,
+    ]),
+  ];
+
+  const imageUrlForMain = mergedMainImages[0] || null;
+  const imageUrlsJson = JSON.stringify(mergedMainImages);
+  const hotelImagesJson = JSON.stringify(mergedHotelImages);
+  const hotelMakkahImagesJson = JSON.stringify(mergedHotelMakkahImages);
+  const hotelMadinahImagesJson = JSON.stringify(mergedHotelMadinahImages);
 
   let sql;
   let values;
 
-  if (req.file) {
-    // Update dengan gambar baru
+  if (mainImageFiles.length > 0) {
+    // Update dengan perubahan gambar utama
     sql = `UPDATE products SET 
            title=?, slug=?, summary=?, category=?, price=?, 
            price_quad=?, price_triple=?, price_double=?, 
            duration=?, departure_date=?, closing_date=?, airline=?, quota=?, product_status=?, 
-           hotel_makkah=?, hotel_madinah=?, description=?, itinerary=?, 
+           hotel_makkah=?, hotel_madinah=?, hotel_images=?, hotel_makkah_images=?, hotel_madinah_images=?, description=?, itinerary=?, 
            included=?, excluded=?, image_url=? 
-           WHERE id=?`;
+           , image_urls=? WHERE id=?`;
 
     values = [
       title,
@@ -208,11 +362,15 @@ router.put(
       product_status,
       hotel_makkah,
       hotel_madinah,
+      hotelImagesJson,
+      hotelMakkahImagesJson,
+      hotelMadinahImagesJson,
       description,
       itinerary,
       included,
       excluded,
-      req.file.filename,
+      imageUrlForMain,
+      imageUrlsJson,
       id,
     ];
   } else {
@@ -221,9 +379,9 @@ router.put(
            title=?, slug=?, summary=?, category=?, price=?, 
            price_quad=?, price_triple=?, price_double=?, 
            duration=?, departure_date=?, closing_date=?, airline=?, quota=?, product_status=?, 
-           hotel_makkah=?, hotel_madinah=?, description=?, itinerary=?, 
+           hotel_makkah=?, hotel_madinah=?, hotel_images=?, hotel_makkah_images=?, hotel_madinah_images=?, description=?, itinerary=?, 
            included=?, excluded=? 
-           WHERE id=?`;
+           , image_url=?, image_urls=? WHERE id=?`;
 
     values = [
       title,
@@ -242,10 +400,15 @@ router.put(
       product_status,
       hotel_makkah,
       hotel_madinah,
+      hotelImagesJson,
+      hotelMakkahImagesJson,
+      hotelMadinahImagesJson,
       description,
       itinerary,
       included,
       excluded,
+      imageUrlForMain,
+      imageUrlsJson,
       id,
     ];
   }

@@ -84,6 +84,8 @@ db.query(
 );
 
 const schemaPatchQueries = [
+  "ALTER TABLE bookings ADD COLUMN user_id INT NULL",
+  "ALTER TABLE bookings ADD INDEX idx_bookings_user_id (user_id)",
   "ALTER TABLE bookings ADD COLUMN payment_status VARCHAR(20) NOT NULL DEFAULT 'unpaid'",
   "ALTER TABLE bookings ADD COLUMN payment_method VARCHAR(50) NULL",
   "ALTER TABLE bookings ADD COLUMN payment_provider VARCHAR(50) NULL",
@@ -152,7 +154,7 @@ const createBookingRateLimit = (req, res, next) => {
   return next();
 };
 
-router.post("/", createBookingRateLimit, (req, res) => {
+router.post("/", requireAuth, createBookingRateLimit, (req, res) => {
   const {
     product_id,
     customer_name,
@@ -225,12 +227,13 @@ router.post("/", createBookingRateLimit, (req, res) => {
 
       const bookingCode = `BK-${Date.now()}`;
       const insertSql = `INSERT INTO bookings
-        (booking_code, product_id, product_title, customer_name, customer_phone, customer_email,
+        (booking_code, user_id, product_id, product_title, customer_name, customer_phone, customer_email,
          qty_quad, qty_triple, qty_double, total_pax, total_price, status, payment_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid')`;
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid')`;
 
       const insertValues = [
         bookingCode,
+        req.user?.id || null,
         cleanProductId,
         product.title,
         cleanName,
@@ -358,6 +361,44 @@ router.get("/:id/logs", requireAuth, requireAdmin, (req, res) => {
         return res.status(500).json({ error: "Gagal memuat log booking." });
       }
       res.json(rows);
+    },
+  );
+});
+
+router.get("/:id/payment-proofs", requireAuth, requireAdmin, (req, res) => {
+  const bookingId = toInt(req.params.id);
+  if (!bookingId) {
+    return res.status(400).json({ error: "ID booking tidak valid." });
+  }
+
+  db.query(
+    `SELECT
+      pp.id,
+      pp.booking_id,
+      pp.sender_name,
+      pp.sender_bank,
+      pp.amount,
+      pp.transfer_date,
+      pp.note,
+      pp.proof_image_url,
+      pp.verification_status,
+      pp.created_at,
+      pc.bank_name AS destination_bank_name,
+      pc.account_number AS destination_account_number,
+      pc.account_holder AS destination_account_holder
+    FROM payment_proofs pp
+    LEFT JOIN payment_channels pc ON pc.id = pp.payment_channel_id
+    WHERE pp.booking_id = ?
+    ORDER BY pp.created_at DESC, pp.id DESC`,
+    [bookingId],
+    (err, rows) => {
+      if (err) {
+        console.error("Booking payment proofs error:", err.message);
+        return res
+          .status(500)
+          .json({ error: "Gagal memuat data bukti pembayaran." });
+      }
+      return res.json({ items: rows });
     },
   );
 });
