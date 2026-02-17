@@ -11,7 +11,7 @@ const db = mysql.createConnection({
   database: "db_aba_tour",
 });
 
-const JWT_SECRET = "BOSS_SECRET_KEY_123"; // Nanti bisa dipindah ke .env
+const JWT_SECRET = process.env.JWT_SECRET || "BOSS_SECRET_KEY_123";
 
 // --- REGISTER ---
 router.post("/register", async (req, res) => {

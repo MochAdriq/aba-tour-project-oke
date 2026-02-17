@@ -4,6 +4,7 @@ const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const db = mysql.createConnection({
   host: "localhost",
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- 1. GET ALL PROMOS (JOIN dengan Products untuk ambil Slug) ---
-router.get("/", (req, res) => {
+router.get("/", requireAuth, requireAdmin, (req, res) => {
   const sql = `
         SELECT promos.*, products.title as product_title, products.slug as product_slug 
         FROM promos 
@@ -54,7 +55,12 @@ router.get("/active", (req, res) => {
 });
 
 // POST (SIMPAN BENTO LAYOUT)
-router.post("/", upload.single("hero_image"), (req, res) => {
+router.post(
+  "/",
+  requireAuth,
+  requireAdmin,
+  upload.single("hero_image"),
+  (req, res) => {
   try {
     // 1. Cek data yang masuk di Terminal (Untuk Debugging)
     console.log("📥 Data Promo Masuk:", req.body);
@@ -103,10 +109,11 @@ router.post("/", upload.single("hero_image"), (req, res) => {
     console.error("❌ Server Error:", error);
     res.status(500).json({ error: "Server Error" });
   }
-});
+  },
+);
 
 // PUT (UPDATE STATUS)
-router.put("/:id/status", (req, res) => {
+router.put("/:id/status", requireAuth, requireAdmin, (req, res) => {
   const { is_active } = req.body; // Menerima 1 atau 0
   const id = req.params.id;
 
@@ -148,7 +155,7 @@ router.put("/:id/status", (req, res) => {
 });
 
 // DELETE
-router.delete("/:id", (req, res) => {
+router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
   db.query(
     "DELETE FROM promos WHERE id = ?",
     [req.params.id],

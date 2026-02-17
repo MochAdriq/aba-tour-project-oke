@@ -4,6 +4,7 @@ const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const db = mysql.createConnection({
   host: "localhost",
@@ -35,7 +36,7 @@ router.get("/", (req, res) => {
 });
 
 // --- 2. GET SINGLE PRODUCT BY ID ---
-router.get("/:id", (req, res) => {
+router.get("/:id", requireAuth, requireAdmin, (req, res) => {
   const sql = "SELECT * FROM products WHERE id = ?";
   db.query(sql, [req.params.id], (err, result) => {
     if (err) return res.status(500).json(err);
@@ -58,7 +59,7 @@ router.get("/slug/:slug", (req, res) => {
 });
 
 // --- 4. POST (TAMBAH PRODUK BARU - UPDATED) ---
-router.post("/", upload.single("image"), (req, res) => {
+router.post("/", requireAuth, requireAdmin, upload.single("image"), (req, res) => {
   try {
     const {
       title,
@@ -138,7 +139,12 @@ router.post("/", upload.single("image"), (req, res) => {
 });
 
 // --- 5. PUT (UPDATE PRODUK - UPDATED) ---
-router.put("/:id", upload.single("image"), (req, res) => {
+router.put(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  upload.single("image"),
+  (req, res) => {
   const { id } = req.params;
   const {
     title,
@@ -251,10 +257,11 @@ router.put("/:id", upload.single("image"), (req, res) => {
     }
     res.json({ message: "Paket berhasil diperbarui!" });
   });
-});
+  },
+);
 
 // --- 6. DELETE PRODUCT ---
-router.delete("/:id", (req, res) => {
+router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
   const sql = "DELETE FROM products WHERE id = ?";
   db.query(sql, [req.params.id], (err, result) => {
     if (err) return res.status(500).json(err);
