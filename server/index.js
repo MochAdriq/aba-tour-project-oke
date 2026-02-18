@@ -17,11 +17,14 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const allowedOrigins = (process.env.CORS_ORIGINS ||
-  "http://localhost:5173,http://localhost:5174,http://localhost:3000")
+// === GANTI JADI UMROHGO ===
+const allowedOrigins = (process.env.CORS_ORIGINS || 
+  // Masukkan domain umrohgo.id (pakai https dan tanpa garis miring di belakang)
+  "http://localhost:5173,http://localhost:5174,http://localhost:3000,https://umrohgo.id,https://www.umrohgo.id") 
   .split(",")
   .map((item) => item.trim())
   .filter(Boolean);
+// ==========================
 
 app.disable("x-powered-by");
 app.use(

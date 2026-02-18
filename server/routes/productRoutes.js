@@ -1,17 +1,11 @@
-const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
-const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 const productSchemaPatchQueries = [
   "ALTER TABLE products ADD COLUMN hotel_images TEXT NULL",
@@ -433,3 +427,4 @@ router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
 });
 
 module.exports = router;
+

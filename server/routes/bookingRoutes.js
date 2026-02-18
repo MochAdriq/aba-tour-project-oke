@@ -1,16 +1,10 @@
-const express = require("express");
-const mysql = require("mysql2");
+﻿const express = require("express");
 const crypto = require("crypto");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 const BOOKING_STATUSES = ["pending", "confirmed", "paid", "cancelled"];
 const PAYMENT_STATUSES = ["unpaid", "paid", "failed", "refunded"];
@@ -403,7 +397,7 @@ router.get("/:id/payment-proofs", requireAuth, requireAdmin, (req, res) => {
   );
 });
 
-router.patch("/:id/status", requireAuth, requireAdmin, (req, res) => {
+router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
   const { status, admin_note } = req.body;
   const bookingId = toInt(req.params.id);
 
@@ -412,124 +406,92 @@ router.patch("/:id/status", requireAuth, requireAdmin, (req, res) => {
     return res.status(400).json({ error: "Status booking tidak valid." });
   }
 
-  db.beginTransaction((trxErr) => {
-    if (trxErr) {
-      console.error("Booking trx error:", trxErr.message);
-      return res.status(500).json({ error: "Gagal update status booking." });
-    }
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
-    db.query(
+    const [rows] = await conn.query(
       "SELECT id, product_id, total_pax, status, payment_status FROM bookings WHERE id = ? FOR UPDATE",
       [bookingId],
-      (findErr, rows) => {
-        if (findErr) {
-          return db.rollback(() =>
-            res.status(500).json({ error: "Gagal update status booking." }),
-          );
-        }
-        if (rows.length === 0) {
-          return db.rollback(() =>
-            res.status(404).json({ error: "Booking tidak ditemukan." }),
-          );
-        }
-
-        const booking = rows[0];
-        const fromStatus = booking.status;
-        const toStatus = status;
-
-        if (!isTransitionAllowed(fromStatus, toStatus)) {
-          return db.rollback(() =>
-            res.status(400).json({
-              error: `Transisi status tidak valid dari ${fromStatus} ke ${toStatus}.`,
-            }),
-          );
-        }
-
-        const nextPaymentStatus =
-          toStatus === "paid"
-            ? "paid"
-            : toStatus === "cancelled" && booking.payment_status !== "paid"
-              ? "failed"
-              : booking.payment_status;
-
-        const updateBooking = () => {
-          db.query(
-            `UPDATE bookings
-             SET status = ?, payment_status = ?, admin_note = ?, paid_at = CASE WHEN ? = 'paid' AND paid_at IS NULL THEN NOW() ELSE paid_at END
-             WHERE id = ?`,
-            [toStatus, nextPaymentStatus, admin_note || null, toStatus, bookingId],
-            (updateErr) => {
-              if (updateErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal update status booking." }),
-                );
-              }
-
-              insertStatusLog({
-                bookingId,
-                fromStatus,
-                toStatus,
-                source: "admin",
-                userId: req.user?.id || null,
-                role: req.user?.role || null,
-                note: admin_note || null,
-              });
-
-              db.commit((commitErr) => {
-                if (commitErr) {
-                  return db.rollback(() =>
-                    res.status(500).json({ error: "Gagal update status booking." }),
-                  );
-                }
-                return res.json({
-                  message: "Status booking berhasil diperbarui.",
-                });
-              });
-            },
-          );
-        };
-
-        if (shouldReserveQuota(fromStatus, toStatus)) {
-          db.query(
-            "UPDATE products SET quota = quota - ? WHERE id = ? AND quota >= ?",
-            [booking.total_pax, booking.product_id, booking.total_pax],
-            (quotaErr, quotaRes) => {
-              if (quotaErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal update status booking." }),
-                );
-              }
-              if (!quotaRes.affectedRows) {
-                return db.rollback(() =>
-                  res.status(400).json({ error: "Kuota tidak mencukupi." }),
-                );
-              }
-              return updateBooking();
-            },
-          );
-          return;
-        }
-
-        if (shouldReleaseQuota(fromStatus, toStatus)) {
-          db.query(
-            "UPDATE products SET quota = quota + ? WHERE id = ?",
-            [booking.total_pax, booking.product_id],
-            (quotaErr) => {
-              if (quotaErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal update status booking." }),
-                );
-              }
-              return updateBooking();
-            },
-          );
-          return;
-        }
-
-        updateBooking();
-      },
     );
-  });
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: "Booking tidak ditemukan." });
+    }
+
+    const booking = rows[0];
+    const fromStatus = booking.status;
+    const toStatus = status;
+
+    if (!isTransitionAllowed(fromStatus, toStatus)) {
+      await conn.rollback();
+      return res.status(400).json({
+        error: `Transisi status tidak valid dari ${fromStatus} ke ${toStatus}.`,
+      });
+    }
+
+    const nextPaymentStatus =
+      toStatus === "paid"
+        ? "paid"
+        : toStatus === "cancelled" && booking.payment_status !== "paid"
+          ? "failed"
+          : booking.payment_status;
+
+    if (shouldReserveQuota(fromStatus, toStatus)) {
+      const [quotaRes] = await conn.query(
+        "UPDATE products SET quota = quota - ? WHERE id = ? AND quota >= ?",
+        [booking.total_pax, booking.product_id, booking.total_pax],
+      );
+      if (!quotaRes.affectedRows) {
+        await conn.rollback();
+        return res.status(400).json({ error: "Kuota tidak mencukupi." });
+      }
+    }
+
+    if (shouldReleaseQuota(fromStatus, toStatus)) {
+      await conn.query("UPDATE products SET quota = quota + ? WHERE id = ?", [
+        booking.total_pax,
+        booking.product_id,
+      ]);
+    }
+
+    await conn.query(
+      `UPDATE bookings
+       SET status = ?, payment_status = ?, admin_note = ?, paid_at = CASE WHEN ? = 'paid' AND paid_at IS NULL THEN NOW() ELSE paid_at END
+       WHERE id = ?`,
+      [toStatus, nextPaymentStatus, admin_note || null, toStatus, bookingId],
+    );
+
+    await conn.commit();
+
+    insertStatusLog({
+      bookingId,
+      fromStatus,
+      toStatus,
+      source: "admin",
+      userId: req.user?.id || null,
+      role: req.user?.role || null,
+      note: admin_note || null,
+    });
+
+    return res.json({
+      message: "Status booking berhasil diperbarui.",
+    });
+  } catch (err) {
+    if (conn) {
+      try {
+        await conn.rollback();
+      } catch {
+        // ignore rollback error
+      }
+    }
+    console.error("Booking trx error:", err.message);
+    return res.status(500).json({ error: "Gagal update status booking." });
+  } finally {
+    if (conn) conn.release();
+  }
 });
 
 router.post("/:id/payment-intent", requireAuth, requireAdmin, (req, res) => {
@@ -583,3 +545,4 @@ router.post("/:id/payment-intent", requireAuth, requireAdmin, (req, res) => {
 });
 
 module.exports = router;
+

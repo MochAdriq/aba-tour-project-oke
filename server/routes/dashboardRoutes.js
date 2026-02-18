@@ -1,15 +1,9 @@
-const express = require("express");
-const mysql = require("mysql2");
+﻿const express = require("express");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 router.get("/summary", requireAuth, requireAdmin, (req, res) => {
   const bookingStatsSql = `
@@ -145,3 +139,4 @@ router.get("/summary", requireAuth, requireAdmin, (req, res) => {
 });
 
 module.exports = router;
+

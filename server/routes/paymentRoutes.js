@@ -1,6 +1,5 @@
-const crypto = require("crypto");
+﻿const crypto = require("crypto");
 const express = require("express");
-const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -8,12 +7,7 @@ const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 const WEBHOOK_SECRET =
   process.env.PAYMENT_WEBHOOK_SECRET || "DEV_PAYMENT_WEBHOOK_SECRET";
@@ -399,7 +393,7 @@ router.post("/proof", requireAuth, paymentProofUpload.single("proof_image"), (re
   );
 });
 
-router.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   const signature = req.headers["x-aba-signature"];
   const rawBody = req.body;
 
@@ -433,141 +427,104 @@ router.post("/webhook", express.raw({ type: "application/json" }), (req, res) =>
     : "SELECT id, booking_code, status, payment_status, product_id, total_pax FROM bookings WHERE booking_code = ? FOR UPDATE";
   const findValue = bookingId || bookingCode;
 
-  db.beginTransaction((trxErr) => {
-    if (trxErr) return res.status(500).json({ error: "Gagal proses webhook." });
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
-    db.query(findSql, [findValue], (findErr, rows) => {
-      if (findErr) {
-        return db.rollback(() =>
-          res.status(500).json({ error: "Gagal proses webhook." }),
+    const [rows] = await conn.query(findSql, [findValue]);
+    if (!rows.length) {
+      await conn.rollback();
+      return res.status(404).json({ error: "Booking tidak ditemukan." });
+    }
+
+    const booking = rows[0];
+    const currentStatus = booking.status;
+    const currentPaymentStatus = booking.payment_status;
+
+    if (event === "payment.paid") {
+      const shouldReserve =
+        !RESERVING_STATUSES.has(currentStatus) && currentStatus !== "cancelled";
+
+      if (shouldReserve) {
+        const [quotaRes] = await conn.query(
+          "UPDATE products SET quota = quota - ? WHERE id = ? AND quota >= ?",
+          [booking.total_pax, booking.product_id, booking.total_pax],
         );
-      }
-      if (!rows.length) {
-        return db.rollback(() =>
-          res.status(404).json({ error: "Booking tidak ditemukan." }),
-        );
-      }
-
-      const booking = rows[0];
-      const currentStatus = booking.status;
-      const currentPaymentStatus = booking.payment_status;
-
-      if (event === "payment.paid") {
-        const shouldReserve =
-          !RESERVING_STATUSES.has(currentStatus) && currentStatus !== "cancelled";
-
-        const continueAfterQuota = () => {
-          db.query(
-            `UPDATE bookings
-             SET status = CASE WHEN status = 'cancelled' THEN status ELSE 'paid' END,
-                 payment_status = 'paid',
-                 payment_method = ?,
-                 payment_provider = ?,
-                 external_txn_id = ?,
-                 paid_at = COALESCE(paid_at, NOW())
-             WHERE id = ?`,
-            [
-              data.payment_method || null,
-              data.payment_provider || "gateway",
-              data.external_txn_id || null,
-              booking.id,
-            ],
-            (updateErr) => {
-              if (updateErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal proses webhook." }),
-                );
-              }
-
-              if (currentStatus !== "paid" && currentStatus !== "cancelled") {
-                insertStatusLog({
-                  bookingId: booking.id,
-                  fromStatus: currentStatus,
-                  toStatus: "paid",
-                  source: "webhook",
-                  note: `Payment paid. External Txn: ${data.external_txn_id || "-"}`,
-                });
-              }
-
-              db.commit((commitErr) => {
-                if (commitErr) {
-                  return db.rollback(() =>
-                    res.status(500).json({ error: "Gagal proses webhook." }),
-                  );
-                }
-                return res.json({ message: "Webhook paid diproses." });
-              });
-            },
-          );
-        };
-
-        if (shouldReserve) {
-          db.query(
-            "UPDATE products SET quota = quota - ? WHERE id = ? AND quota >= ?",
-            [booking.total_pax, booking.product_id, booking.total_pax],
-            (quotaErr, quotaRes) => {
-              if (quotaErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal proses webhook." }),
-                );
-              }
-              if (!quotaRes.affectedRows) {
-                return db.rollback(() =>
-                  res.status(400).json({ error: "Kuota tidak mencukupi." }),
-                );
-              }
-              return continueAfterQuota();
-            },
-          );
-          return;
+        if (!quotaRes.affectedRows) {
+          await conn.rollback();
+          return res.status(400).json({ error: "Kuota tidak mencukupi." });
         }
-
-        return continueAfterQuota();
       }
 
-      if (event === "payment.failed") {
-        db.query(
-          "UPDATE bookings SET payment_status = 'failed', payment_provider = ?, external_txn_id = ? WHERE id = ?",
-          [
-            data.payment_provider || "gateway",
-            data.external_txn_id || null,
-            booking.id,
-          ],
-          (updateErr) => {
-            if (updateErr) {
-              return db.rollback(() =>
-                res.status(500).json({ error: "Gagal proses webhook." }),
-              );
-            }
-
-            if (currentPaymentStatus !== "failed") {
-              insertStatusLog({
-                bookingId: booking.id,
-                fromStatus: currentStatus,
-                toStatus: currentStatus,
-                source: "webhook",
-                note: `Payment failed. External Txn: ${data.external_txn_id || "-"}`,
-              });
-            }
-
-            db.commit((commitErr) => {
-              if (commitErr) {
-                return db.rollback(() =>
-                  res.status(500).json({ error: "Gagal proses webhook." }),
-                );
-              }
-              return res.json({ message: "Webhook failed diproses." });
-            });
-          },
-        );
-        return;
-      }
-
-      db.rollback(() =>
-        res.status(400).json({ error: `Event webhook tidak didukung: ${event}` }),
+      await conn.query(
+        `UPDATE bookings
+         SET status = CASE WHEN status = 'cancelled' THEN status ELSE 'paid' END,
+             payment_status = 'paid',
+             payment_method = ?,
+             payment_provider = ?,
+             external_txn_id = ?,
+             paid_at = COALESCE(paid_at, NOW())
+         WHERE id = ?`,
+        [
+          data.payment_method || null,
+          data.payment_provider || "gateway",
+          data.external_txn_id || null,
+          booking.id,
+        ],
       );
-    });
-  });
+
+      await conn.commit();
+
+      if (currentStatus !== "paid" && currentStatus !== "cancelled") {
+        insertStatusLog({
+          bookingId: booking.id,
+          fromStatus: currentStatus,
+          toStatus: "paid",
+          source: "webhook",
+          note: `Payment paid. External Txn: ${data.external_txn_id || "-"}`,
+        });
+      }
+
+      return res.json({ message: "Webhook paid diproses." });
+    }
+
+    if (event === "payment.failed") {
+      await conn.query(
+        "UPDATE bookings SET payment_status = 'failed', payment_provider = ?, external_txn_id = ? WHERE id = ?",
+        [data.payment_provider || "gateway", data.external_txn_id || null, booking.id],
+      );
+
+      await conn.commit();
+
+      if (currentPaymentStatus !== "failed") {
+        insertStatusLog({
+          bookingId: booking.id,
+          fromStatus: currentStatus,
+          toStatus: currentStatus,
+          source: "webhook",
+          note: `Payment failed. External Txn: ${data.external_txn_id || "-"}`,
+        });
+      }
+
+      return res.json({ message: "Webhook failed diproses." });
+    }
+
+    await conn.rollback();
+    return res.status(400).json({ error: `Event webhook tidak didukung: ${event}` });
+  } catch (err) {
+    if (conn) {
+      try {
+        await conn.rollback();
+      } catch {
+        // ignore rollback error
+      }
+    }
+    return res.status(500).json({ error: "Gagal proses webhook." });
+  } finally {
+    if (conn) conn.release();
+  }
 });
 
 module.exports = router;
+

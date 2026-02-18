@@ -1,5 +1,4 @@
-const express = require("express");
-const mysql = require("mysql2");
+﻿const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -7,12 +6,7 @@ const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 db.query(
   `CREATE TABLE IF NOT EXISTS news (
@@ -431,3 +425,4 @@ router.get("/:slug", (req, res) => {
 });
 
 module.exports = router;
+

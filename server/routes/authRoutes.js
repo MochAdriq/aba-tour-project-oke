@@ -1,15 +1,9 @@
-const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
-const mysql = require("mysql2");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 const JWT_SECRET = process.env.JWT_SECRET || "BOSS_SECRET_KEY_123";
 
@@ -57,3 +51,4 @@ router.post("/login", (req, res) => {
 });
 
 module.exports = router;
+

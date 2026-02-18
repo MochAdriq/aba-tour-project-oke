@@ -1,17 +1,11 @@
-const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
-const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "db_aba_tour",
-});
+const db = require("../config/db");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -63,7 +57,7 @@ router.post(
   (req, res) => {
   try {
     // 1. Cek data yang masuk di Terminal (Untuk Debugging)
-    console.log("📥 Data Promo Masuk:", req.body);
+    console.log("ðŸ“¥ Data Promo Masuk:", req.body);
 
     const { promo_name, wa_link, product_id, content_json } = req.body;
     const hero_image = req.file ? req.file.filename : null;
@@ -96,17 +90,17 @@ router.post(
     db.query(sql, values, (err, result) => {
       if (err) {
         // 3. TAMPILKAN ERROR ASLI MYSQL DI TERMINAL
-        console.error("❌ SQL Error:", err.message);
+        console.error("âŒ SQL Error:", err.message);
         return res
           .status(500)
           .json({ error: "Database Error: " + err.message });
       }
 
-      console.log("✅ Promo Berhasil Disimpan!");
+      console.log("âœ… Promo Berhasil Disimpan!");
       res.json({ message: "Promo Bento berhasil dibuat!" });
     });
   } catch (error) {
-    console.error("❌ Server Error:", error);
+    console.error("âŒ Server Error:", error);
     res.status(500).json({ error: "Server Error" });
   }
   },
@@ -167,3 +161,4 @@ router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
 });
 
 module.exports = router;
+
